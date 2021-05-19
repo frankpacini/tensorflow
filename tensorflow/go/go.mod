@@ -1,4 +1,4 @@
-module github.com/tensorflow/tensorflow/tensorflow/go
+module github.com/galeone/tensorflow/tensorflow/go
 
 go 1.16
 
