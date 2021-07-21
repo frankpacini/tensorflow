@@ -1,4 +1,4 @@
-module github.com/galeone/tensorflow/tensorflow/go
+module github.com/frankpacini/tensorflow/tensorflow/go
 
 go 1.15
 
