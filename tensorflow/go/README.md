@@ -1,103 +1,74 @@
 # TensorFlow in Go
-
 Construct and execute TensorFlow graphs in Go.
 
 [![GoDoc](https://godoc.org/github.com/frankpacini/tensorflow/tensorflow/go?status.svg)](https://godoc.org/github.com/frankpacini/tensorflow/tensorflow/go)
 
-> *WARNING*: The API defined in this package is not stable and can change
-> without notice. The same goes for the package path:
-> (`github.com/frankpacini/tensorflow/tensorflow/go`).
-
-## Quickstart
-
-Refer to [Installing TensorFlow for Go](https://www.tensorflow.org/install/lang_go)
-
-## Building the TensorFlow C library from source
-
-If the "Quickstart" instructions above do not work (perhaps the release archives
-are not available for your operating system or architecture, or you're using a
-different version of CUDA/cuDNN), then the TensorFlow C library must be built
-from source.
-
-### Prerequisites
-
--   [bazel](https://www.bazel.build/versions/master/docs/install.html)
--   Environment to build TensorFlow from source code
-    ([Linux or macOS](https://www.tensorflow.org/install/source)). If you don't
-    need GPU support, then try the following:
-
-    ```sh
-    sudo apt-get install python swig python-numpy # Linux
-    brew install swig                             # OS X with homebrew
-    ```
-- [Protocol buffer compiler (protoc) 3.x](https://github.com/google/protobuf/releases/)
-
-### Build
-
-1.  Download the source code
-
-    ```sh
-    go get -d github.com/frankpacini/tensorflow/tensorflow/go
-    ```
-
-2.  Build the TensorFlow C library:
-
-    ```sh
-    cd ${GOPATH}/src/github.com/frankpacini/tensorflow
-    ./configure
-    bazel build -c opt //tensorflow:libtensorflow.so
-    ```
-
-    This can take a while (tens of minutes, more if also building for GPU).
-
-3.  Make `libtensorflow.so` and `libtensorflow_framework.so` available to the
-    linker. This can be done by either:
-
-    a. Copying it to a system location, e.g.,
-
-    ```sh
-    sudo cp ${GOPATH}/src/github.com/frankpacini/tensorflow/bazel-bin/tensorflow/libtensorflow.so /usr/local/lib
-    sudo cp ${GOPATH}/src/github.com/frankpacini/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so /usr/local/lib
-    ```
-
-    OR
-
-    b. Setting environment variables:
-
-    ```sh
-    export LIBRARY_PATH=${GOPATH}/src/github.com/frankpacini/tensorflow/bazel-bin/tensorflow
-    # Linux
-    export LD_LIBRARY_PATH=${GOPATH}/src/github.com/frankpacini/tensorflow/bazel-bin/tensorflow
-    # OS X
-    export DYLD_LIBRARY_PATH=${GOPATH}/src/github.com/frankpacini/tensorflow/bazel-bin/tensorflow
-    ```
-
-4.  Build and test:
-
-    ```sh
-    go generate github.com/frankpacini/tensorflow/tensorflow/go/op
-    go test github.com/frankpacini/tensorflow/tensorflow/go
-    ```
-
-### Generate wrapper functions for ops
-
-Go functions corresponding to TensorFlow operations are generated in `op/wrappers.go`. To regenerate them:
-
-Prerequisites:
-- [Protocol buffer compiler (protoc) 3.x](https://github.com/google/protobuf/releases/)
-- The TensorFlow repository under GOPATH
-
-```sh
-go generate github.com/frankpacini/tensorflow/tensorflow/go/op
+## Quickstart:
+1. Install the Tensorflow C library
+```bash
+curl -L https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.5.0.tar.gz | sudo tar xz --directory /usr/local
+sudo ldconfig
 ```
+2. Add the module
+```bash
+# cd into telegraf-mirror/
+go mod edit -require github.com/frankpacini/tensorflow@v0.0.0-20210721220828-30b5537d0625
+```
+Here the version number is based on the date and SHA of the latest commit. Proper versioning can be set up later. For now if new commits are added, the version number can be determined by getting the timestamp of the commit in UTC (hover over the relative commit time) and the first 12 characters of the SHA.
 
-## Support
 
-Use [Stack Overflow](http://stackoverflow.com/questions/tagged/tensorflow)
-and/or [GitHub issues](https://github.com/frankpacini/tensorflow/issues).
-
-## Contributions
-
-Contributions are welcome. If making any signification changes, probably best to
-discuss on a [GitHub issue](https://github.com/frankpacini/tensorflow/issues)
-before investing too much time. GitHub pull requests are used for contributions.
+## Creating or updating this package:
+1. Install the Tensorflow C library
+```bash
+curl -L https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.5.0.tar.gz | sudo tar xz --directory /usr/local
+sudo ldconfig
+```
+2. Install protobuf dependencies
+```bash
+sudo apt install libprotobuf-dev
+```
+```bash
+# Protobuf install (may take a while):
+cd ~/Downloads
+wget https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-all-3.6.1.tar.gz
+tar -xvzf protobuf-all-3.6.1.tar.gz 
+cd protobuf-3.6.1/
+./configure
+make
+make check
+sudo make install
+sudo ldconfig
+```
+3. Clone Tensorflow source with fixes for Go
+```bash
+# Change the branch as necessary. Clone wherever convenient
+sudo git clone --branch r2.5-go https://github.com/galeone/tensorflow.git ~/go/src/github.com/galeone/tensorflow
+cd ~/go/src/github.com/galeone/tensorflow
+```
+4. Add Go to Sudo
+```bash
+# First copy go binary folder location. Find this with "which go"
+sudo visudo
+# Copy folder location into the secure_path variable with a colon separating it from the previous entry
+```
+5. Setup go modules
+```bash
+sudo go mod init github.com/galeone/tensorflow
+cd tensorflow/go
+sudo go mod vendor
+```
+6. Generate proto files and TF ops wrappers
+```bash
+sudo go generate ./...
+sudo go mod tidy
+```
+7. Change username references
+```bash
+cd ../..
+find ./ -type f -exec sed -i -e 's/galeone/NEW_USERNAME/g' {} \;
+```
+8. Push new repository
+```bash
+sudo git remote set-url NEW_URL
+sudo git push
+```
